@@ -4,7 +4,9 @@ import pygame
 import random
 import os
 import neat
+
 pygame.font.init()  
+
 WIN_WIDTH = 600
 WIN_HEIGHT = 800
 FLOOR = 730
@@ -33,7 +35,7 @@ class Bird:
     
         self.x = x
         self.y = y
-        self.tilt = 0  # degrees to tilt
+        self.tilt = 0  
         self.tick_count = 0
         self.vel = 0
         self.height = self.y
@@ -50,10 +52,10 @@ class Bird:
         
         self.tick_count += 1
 
-        # for downward acceleration
-        displacement = self.vel*(self.tick_count) + 0.5*(3)*(self.tick_count)**2  # calculate displacement
+        
+        displacement = self.vel*(self.tick_count) + 0.5*(3)*(self.tick_count)**2  
 
-        # terminal velocity
+        
         if displacement >= 16:
             displacement = (displacement/abs(displacement)) * 16
 
@@ -90,7 +92,7 @@ class Bird:
             self.img_count = self.ANIMATION_TIME*2
 
 
-        # tilt the bird
+        
         blitRotateCenter(win, self.img, (self.x, self.y), self.tilt)
 
     def get_mask(self):
@@ -108,7 +110,7 @@ class Pipe():
         self.x = x
         self.height = 0
 
-        # where the top and bottom of the pipe is
+        
         self.top = 0
         self.bottom = 0
 
@@ -230,14 +232,12 @@ def eval_genomes(genomes, config):
     win = WIN
     gen += 1
 
-    # start by creating lists holding the genome itself, the
-    # neural network associated with the genome and the
-    # bird object that uses that network to play
+    
     nets = []
     birds = []
     ge = []
     for genome_id, genome in genomes:
-        genome.fitness = 0  # start with fitness level of 0
+        genome.fitness = 0  
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         nets.append(net)
         birds.append(Bird(230,350))
@@ -262,17 +262,16 @@ def eval_genomes(genomes, config):
 
         pipe_ind = 0
         if len(birds) > 0:
-            if len(pipes) > 1 and birds[0].x > pipes[0].x + pipes[0].PIPE_TOP.get_width():  # determine whether to use the first or second
-                pipe_ind = 1                                                                 # pipe on the screen for neural network input
+            if len(pipes) > 1 and birds[0].x > pipes[0].x + pipes[0].PIPE_TOP.get_width():  
+                pipe_ind = 1                                                                 
 
-        for x, bird in enumerate(birds):  # give each bird a fitness of 0.1 for each frame it stays alive
+        for x, bird in enumerate(birds):  
             ge[x].fitness += 0.1
             bird.move()
 
-            # send bird location, top pipe location and bottom pipe location and determine from network whether to jump or not
             output = nets[birds.index(bird)].activate((bird.y, abs(bird.y - pipes[pipe_ind].height), abs(bird.y - pipes[pipe_ind].bottom)))
 
-            if output[0] > 0.5:  # we use a tanh activation function so result will be between -1 and 1. if over 0.5 jump
+            if output[0] > 0.5:  #
                 bird.jump()
 
         base.move()
@@ -298,7 +297,6 @@ def eval_genomes(genomes, config):
 
         if add_pipe:
             score += 1
-            # can add this line to give more reward for passing through a pipe (not required)
             for genome in ge:
                 genome.fitness += 5
             pipes.append(Pipe(WIN_WIDTH))
@@ -321,26 +319,16 @@ def run(config_file):
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_file)
 
-    # Create the population, which is the top-level object for a NEAT run.
+    
     p = neat.Population(config)
-
-    # Add a stdout reporter to show progress in the terminal.
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
-    #p.add_reporter(neat.Checkpointer(5))
-
-    # Run for up to 50 generations.
+   
     winner = p.run(eval_genomes, 50)
 
-    # show final stats
+    
     print('\nBest genome:\n{!s}'.format(winner))
 
 
 if __name__ == '__main__':
-    # Determine path to configuration file. This path manipulation is
-    # here so that the script will run successfully regardless of the
-    # current working directory.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
     run(config_path)

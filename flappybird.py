@@ -1,4 +1,5 @@
 #Reference Tech with Tim https://github.com/techwithtim/NEAT-Flappy-Bird
+#For faster learning increase the population size in the config file
 import pygame
 import random
 import os
